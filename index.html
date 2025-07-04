@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Website Masjid</title>
+    <link href="css/style.css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://unpkg.com/aos@next/dist/aos.css" rel="stylesheet" />
+  </head>
+  <body class="index">
+    <nav>
+      <div class="nav-container">
+        <div class="nav-brand">
+          <span id="typing-text"></span>
+        </div>
+        <button
+          class="hamburger"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          ☰
+        </button>
+        <ul id="nav-menu">
+          <li><a href="#home.html">Home</a></li>
+          <li><a href="#profil.html">Profil Masjid</a></li>
+          <li><a href="#dokumentasi.html">Dokumentasi</a></li>
+          <li><a href="#acara.html">Acara</a></li>
+          <li><a href="#kontak.html">Kontak</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <main id="main-content" class="fade-transition fade-show"></main>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // --- Inisialisasi AOS ---
+        AOS.init({
+          duration: 800, // durasi animasi dalam ms
+          once: true, // animasi hanya muncul sekali
+          easing: "ease-in-out", // gerakan halus
+        });
+
+        // --- Variabel Global yang Dibutuhkan ---
+        const body = document.body;
+        const mainContent = document.getElementById("main-content");
+        const hamburger = document.querySelector(".hamburger");
+        const navMenu = document.getElementById("nav-menu");
+        const navBar = document.querySelector("nav"); // Ambil elemen nav untuk offset scroll
+
+        // --- Typing Text Effect Variables ---
+        const typingTextElement = document.getElementById("typing-text");
+        const textToType = "Masjid Baitut Taibin"; // Ganti dengan teks yang Anda inginkan
+        let charIndex = 0;
+        const typingSpeed = 250; // Kecepatan ketikan dalam milidetik (lebih kecil lebih cepat)
+        const delayBeforeErase = 1500; // Jeda sebelum teks dihapus (milidetik)
+        const eraseSpeed = 180; // Kecepatan menghapus teks (milidetik)
+        const delayBeforeType = 500; // Jeda sebelum mengetik ulang setelah dihapus (milidetik)
+
+        // Tambahkan class transisi awal ke body
+        body.classList.add("fade-transition");
+
+        // --- Fungsi untuk Mengatur Class Body berdasarkan Halaman ---
+        function setBodyClass(pageFileName) {
+          // Hapus semua class yang mungkin sudah ada, kecuali 'fade-transition', 'fade-show', dan 'nav-open'
+          const preservedClasses = [];
+          if (body.classList.contains("fade-transition"))
+            preservedClasses.push("fade-transition");
+          if (body.classList.contains("fade-show"))
+            preservedClasses.push("fade-show");
+          if (body.classList.contains("nav-open"))
+            preservedClasses.push("nav-open");
+
+          body.className = ""; // Reset semua class
+          preservedClasses.forEach((cls) => body.classList.add(cls)); // Tambahkan kembali class yang dipertahankan
+
+          if (pageFileName === "home.html") {
+            body.classList.add("index");
+          } else if (pageFileName === "profil.html") {
+            body.classList.add("profil");
+          } else if (pageFileName === "kontak.html") {
+            body.classList.add("kontak");
+          } else if (pageFileName === "dokumentasi.html") {
+            body.classList.add("dokumentasi");
+          } else if (pageFileName === "acara.html") {
+            body.classList.add("acara");
+          }
+          // Memastikan kelas fade-transition ada setelah class spesifik
+          body.classList.add("fade-transition");
+        }
+
+        // --- Fungsi untuk Memuat Halaman dengan Transisi ---
+        window.navigateTo = function (page, push = true) {
+          // 1. Mulai Fade-out pada konten saat ini
+          mainContent.classList.remove("fade-show");
+          mainContent.classList.add("fade-transition");
+          body.classList.remove("fade-show"); // Mulai fade-out untuk body
+
+          // Menentukan durasi timeout berdasarkan transisi CSS
+          const computedTransitionDuration =
+            parseFloat(getComputedStyle(mainContent).transitionDuration) *
+              1000 || 500;
+
+          setTimeout(() => {
+            fetch(page)
+              .then((response) => {
+                if (!response.ok) throw new Error("Page not found");
+                return response.text();
+              })
+              .then((html) => {
+                mainContent.innerHTML = html;
+                // 2. Atur class body untuk halaman baru
+                setBodyClass(page.split("/").pop()); // Ambil nama file dari path
+
+                // 3. Tambahkan efek fade-in pada konten baru
+                requestAnimationFrame(() => {
+                  mainContent.classList.remove("fade-transition"); // Hapus untuk reset transisi
+                  mainContent.classList.add("fade-show"); // Pemicu fade-in konten
+                  body.classList.add("fade-show"); // Pemicu fade-in body
+                });
+
+                // Gulir ke atas halaman baru
+                window.scrollTo({
+                  top: 0,
+                  behavior: "smooth", // Animasi gulir halus
+                });
+
+                if (push) history.pushState({ page }, "", "#" + page);
+
+                // Re-inisialisasi AOS untuk konten baru
+                AOS.refresh();
+              })
+              .catch((error) => {
+                console.error("Error loading page:", error);
+                mainContent.innerHTML =
+                  "<p>Halaman tidak ditemukan. Terjadi kesalahan.</p>";
+                setBodyClass(""); // Kembalikan ke body class default
+                body.classList.add("fade-show"); // Pastikan body tetap terlihat
+                mainContent.classList.add("fade-show"); // Pastikan konten tetap terlihat
+              });
+          }, computedTransitionDuration - 50); // Jeda sedikit lebih pendek dari durasi transisi agar terlihat mulus
+
+          // Tutup menu mobile setelah klik navigasi
+          if (window.innerWidth <= 768 && navMenu.classList.contains("show")) {
+            navMenu.classList.remove("show");
+            body.classList.remove("nav-open"); // Hapus class nav-open dari body
+            hamburger.setAttribute("aria-expanded", "false");
+          }
+        };
+
+        // --- Handler Navigasi Link Internal ---
+        document.querySelectorAll('a[href^="#"]').forEach((link) => {
+          link.addEventListener("click", function (event) {
+            event.preventDefault();
+            const targetHash = this.getAttribute("href");
+            const pageName = targetHash.substring(1); // Hapus '#'
+
+            if (pageName && pageName.endsWith(".html")) {
+              navigateTo(pageName); // Panggil fungsi navigateTo yang sudah didefinisikan
+            } else if (pageName) {
+              // Untuk anchor link di dalam halaman yang sama
+              const targetElement = document.getElementById(pageName);
+              if (targetElement) {
+                // Sesuaikan offset dengan tinggi navbar
+                const offset = navBar ? navBar.offsetHeight : 70; // Gunakan tinggi navbar atau default 70px
+                window.scrollTo({
+                  top: targetElement.offsetTop - offset,
+                  behavior: "smooth",
+                });
+              }
+            }
+          });
+        });
+
+        // --- Hamburger Menu Logic (Mobile) ---
+        if (hamburger && navMenu) {
+          hamburger.addEventListener("click", () => {
+            navMenu.classList.toggle("show");
+            body.classList.toggle("nav-open"); // Tambah/hapus class nav-open pada body
+            hamburger.setAttribute(
+              "aria-expanded",
+              navMenu.classList.contains("show")
+            );
+          });
+
+          // Tutup menu jika mengklik di luar area menu (termasuk overlay)
+          document.addEventListener("click", (event) => {
+            if (
+              window.innerWidth <= 768 &&
+              navMenu.classList.contains("show")
+            ) {
+              if (
+                !navMenu.contains(event.target) &&
+                !hamburger.contains(event.target)
+              ) {
+                navMenu.classList.remove("show");
+                body.classList.remove("nav-open"); // Hapus class nav-open dari body
+                hamburger.setAttribute("aria-expanded", "false");
+              }
+            }
+          });
+
+          // Tutup menu saat salah satu link di dalam menu diklik
+          navMenu.querySelectorAll("a").forEach((link) => {
+            link.addEventListener("click", () => {
+              if (navMenu.classList.contains("show")) {
+                // Hanya tutup jika menu memang terbuka
+                navMenu.classList.remove("show");
+                body.classList.remove("nav-open");
+                hamburger.setAttribute("aria-expanded", "false");
+              }
+            });
+          });
+        }
+
+        // --- Typing Text Effect Logic ---
+        if (typingTextElement) {
+          // Pastikan elemen ada sebelum menjalankan efek
+          function typeText() {
+            if (charIndex < textToType.length) {
+              typingTextElement.textContent += textToType.charAt(charIndex);
+              charIndex++;
+              setTimeout(typeText, typingSpeed);
+            } else {
+              setTimeout(eraseText, delayBeforeErase);
+            }
+          }
+
+          function eraseText() {
+            if (charIndex > 0) {
+              typingTextElement.textContent = textToType.substring(
+                0,
+                charIndex - 1
+              );
+              charIndex--;
+              setTimeout(eraseText, eraseSpeed);
+            } else {
+              setTimeout(typeText, delayBeforeType);
+            }
+          }
+
+          typeText(); // Mulai fungsi ketik saat halaman dimuat
+        }
+
+        // --- Efek Interaktif Gambar (Parallax Ringan pada galeri) ---
+        const galleryImages = document.querySelectorAll(".gallery-foto img");
+
+        if (galleryImages.length > 0) {
+          const updateImagePositions = () => {
+            galleryImages.forEach((img) => {
+              const rect = img.getBoundingClientRect();
+              const viewportHeight = window.innerHeight;
+
+              if (rect.top < viewportHeight && rect.bottom > 0) {
+                const imgCenter = rect.top + rect.height / 2;
+                const viewportCenter = viewportHeight / 2;
+                const offset = (imgCenter - viewportCenter) * 0.1;
+
+                // Periksa apakah gambar sedang dihover sebelum menerapkan parallax
+                if (!img.matches(":hover")) {
+                  img.style.transform = `translateY(${offset}px)`;
+                }
+              }
+            });
+          };
+
+          window.addEventListener("scroll", updateImagePositions);
+          updateImagePositions();
+
+          galleryImages.forEach((img) => {
+            img.addEventListener("mouseenter", () => {
+              img.style.transition = "transform 0.4s ease"; // Transisi halus saat hover
+              const currentTransform = img.style.transform;
+              const parallaxTranslate = currentTransform.includes("translateY")
+                ? currentTransform.match(/translateY\(([^)]+)\)/)[0]
+                : "";
+              img.style.transform = `${parallaxTranslate} scale(1.05) rotate(1deg)`;
+            });
+
+            img.addEventListener("mouseleave", () => {
+              img.style.transition = "transform 0.4s ease"; // Transisi kembali
+              const rect = img.getBoundingClientRect();
+              const viewportHeight = window.innerHeight;
+              const imgCenter = rect.top + rect.height / 2;
+              const viewportCenter = viewportHeight / 2;
+              const offset = (imgCenter - viewportCenter) * 0.1;
+              img.style.transform = `translateY(${offset}px)`;
+            });
+          });
+        }
+
+        // --- Handling Popstate (Browser Back/Forward Button) ---
+        window.onpopstate = function (event) {
+          const pageFromState =
+            event.state && event.state.page ? event.state.page : "home.html";
+          navigateTo(pageFromState, false);
+        };
+
+        // --- Load Halaman Awal saat DOM Content Loaded ---
+        const initialPage = location.hash.replace("#", "") || "home.html";
+        navigateTo(initialPage, false);
+
+        // --- Efek Gulir ke Atas (Scroll-to-Top Button) ---
+        const scrollToTopBtn = document.createElement("button");
+        scrollToTopBtn.id = "scrollToTopBtn";
+        scrollToTopBtn.innerHTML = "&#9650;";
+        scrollToTopBtn.title = "Gulir ke atas";
+        document.body.appendChild(scrollToTopBtn);
+
+        scrollToTopBtn.style.cssText = `
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 99;
+            font-size: 24px;
+            border: none;
+            outline: none;
+            background-color: rgba(184, 134, 11, 0.8);
+            color: white;
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, opacity 0.3s;
+        `;
+
+        scrollToTopBtn.addEventListener("click", () => {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
+
+        window.addEventListener("scroll", () => {
+          if (window.scrollY > 300) {
+            scrollToTopBtn.style.display = "block";
+            scrollToTopBtn.style.opacity = "1";
+          } else {
+            scrollToTopBtn.style.opacity = "0";
+            setTimeout(() => {
+              if (window.scrollY <= 300) {
+                scrollToTopBtn.style.display = "none";
+              }
+            }, 300);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
